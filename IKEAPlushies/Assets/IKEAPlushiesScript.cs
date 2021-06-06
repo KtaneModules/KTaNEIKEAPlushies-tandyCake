@@ -109,6 +109,7 @@ public class IKEAPlushiesScript : MonoBehaviour {
                 moduleId, directions[direction], currentPos + 1, endPos + 1);
             currentPos = startingPos;
             collectedPlushies.Clear();
+            stage = 0;
             GetComponent<KMBombModule>().HandleStrike();
         }
         else
@@ -135,7 +136,7 @@ public class IKEAPlushiesScript : MonoBehaviour {
             moduleSolved = true;
             Debug.LogFormat("[IKEA Plushies #{0}] All four plushies collected. Module solved.", moduleId);
             GetComponent<KMBombModule>().HandlePass();
-            if (UnityEngine.Random.Range(0, 62) == 0 || Environment.MachineName == "DESKTOP-RGTP319")
+            if (UnityEngine.Random.Range(0, 100) == 0 || Environment.MachineName == "DESKTOP-RGTP319")
                 Audio.PlaySoundAtTransform("gloop", transform);
             else Audio.PlaySoundAtTransform("geck", transform);
         }
@@ -151,9 +152,7 @@ public class IKEAPlushiesScript : MonoBehaviour {
     {
         int pos = start % 15;
         while (chosenGrid[pos] == 'x')
-        {
             pos = (pos + 4) % 15;
-        }
         return pos;
     }
 
