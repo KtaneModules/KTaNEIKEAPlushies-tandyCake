@@ -34,19 +34,17 @@ public class IKEAPlushiesScript : MonoBehaviour {
     int[] SNNumbers;
     int[] plushieValues;
     int[] chosenPlushies;
+    int opposite;
 
 
-    void Awake() //Invoked on frame 0
+    void Awake() 
     {
         moduleId = moduleIdCounter++;
-        foreach (KMSelectable button in buttons) 
-        {
+        foreach (KMSelectable button in buttons)
             button.OnInteract += delegate () { ButtonPress(Array.IndexOf(buttons, button)); return false; };
-        }
-
     }
 
-    void Start() //Invoked on frame 1
+    void Start()
     {
         SNNumbers = Bomb.GetSerialNumberNumbers().ToArray();
         DoCalcs();
@@ -84,12 +82,10 @@ public class IKEAPlushiesScript : MonoBehaviour {
 
     void GetPlushies()
     {
-        chosenPlushies = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }.Shuffle().Take(4).ToArray();
+        chosenPlushies = Enumerable.Range(0,12).ToArray().Shuffle().Take(4).ToArray();
         plushiePositions = chosenPlushies.Select(x => plushieValues[x]).ToArray();
         for (int i = 0; i < 4; i++)
-        {
             sprites[i].sprite = allSprites[chosenPlushies[i]];
-        }
         Debug.LogFormat("[IKEA Plushies #{0}] The chosen plushies are {1}.", moduleId, sprites.Select(x => x.sprite.name).Join(", "));
         Debug.LogFormat("[IKEA Plushies #{0}] The plushies are at positions {1}.", moduleId, plushiePositions.Select(x => x + 1).Join(", "));
 
@@ -117,6 +113,7 @@ public class IKEAPlushiesScript : MonoBehaviour {
             Debug.LogFormat("[IKEA Plushies #{0}] Moved {1} from position {2} to {3}.", moduleId, directions[direction], currentPos + 1, endPos + 1);
             currentPos = endPos;
             Collect();
+            opposite = 3 - direction;
         }
     }
 
@@ -126,7 +123,7 @@ public class IKEAPlushiesScript : MonoBehaviour {
         {
             if (!collectedPlushies.Contains(i) && currentPos == plushiePositions[i])
             {
-                Debug.LogFormat("[IKEA Plushies #{0}] Collected the {1} at position {2}.", moduleId, sprites[i].name, currentPos + 1);
+                Debug.LogFormat("[IKEA Plushies #{0}] Collected the {1} at position {2}.", moduleId, sprites[i].sprite.name, currentPos + 1);
                 stage++;
                 collectedPlushies.Add(i);
             }
@@ -136,9 +133,8 @@ public class IKEAPlushiesScript : MonoBehaviour {
             moduleSolved = true;
             Debug.LogFormat("[IKEA Plushies #{0}] All four plushies collected. Module solved.", moduleId);
             GetComponent<KMBombModule>().HandlePass();
-            if (UnityEngine.Random.Range(0, 100) == 0 || Environment.MachineName == "DESKTOP-RGTP319")
-                Audio.PlaySoundAtTransform("gloop", transform);
-            else Audio.PlaySoundAtTransform("geck", transform);
+            Audio.PlaySoundAtTransform((UnityEngine.Random.Range(0, 100) == 0 || Environment.MachineName == "DESKTOP-RGTP319" || Environment.MachineName == "DESKTOP-4HOQP30")
+                                        ? "gloop" : "geck", transform);
         }
     }
 
