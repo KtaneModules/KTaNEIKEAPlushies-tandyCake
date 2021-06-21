@@ -12,6 +12,7 @@ public class IKEAPlushiesScript : MonoBehaviour {
     public KMAudio Audio;
 
     public KMSelectable[] buttons;
+    public KMSelectable collector;
     public SpriteRenderer[] sprites;
     public Sprite[] allSprites;
 
@@ -42,6 +43,7 @@ public class IKEAPlushiesScript : MonoBehaviour {
         moduleId = moduleIdCounter++;
         foreach (KMSelectable button in buttons)
             button.OnInteract += delegate () { ButtonPress(Array.IndexOf(buttons, button)); return false; };
+        collector.OnInteract += delegate () { Collect(); return false; };
     }
 
     void Start()
@@ -112,13 +114,23 @@ public class IKEAPlushiesScript : MonoBehaviour {
         {
             Debug.LogFormat("[IKEA Plushies #{0}] Moved {1} from position {2} to {3}.", moduleId, directions[direction], currentPos + 1, endPos + 1);
             currentPos = endPos;
-            Collect();
             opposite = 3 - direction;
         }
     }
 
     void Collect()
     {
+        collector.AddInteractionPunch(1);
+        Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, collector.transform);
+        if (moduleSolved)
+            return;
+
+        if (!plushiePositions.Any(x => x == currentPos))
+        {
+            Debug.LogFormat("[IKEA Plushies #{0}] Collect button pressed on a space with no plushies. Strike.", moduleId);
+            GetComponent<KMBombModule>().HandleStrike();
+            return;
+        }
         for (int i = 0; i < 4; i++)
         {
             if (!collectedPlushies.Contains(i) && currentPos == plushiePositions[i])
@@ -160,12 +172,12 @@ public class IKEAPlushiesScript : MonoBehaviour {
     }
 
     #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"Use [!{0} press NW TR 3 SE] to press those buttons.";
+    private readonly string TwitchHelpMessage = @"Use [!{0} press NW TR 3 SE] to press those buttons. Use [!{0} press collect] to press the collect button. Commands can be chained with spaces; collect commands can be interspersed within movement commands.";
     #pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand (string input)
     {
-        string[] positions = new string[] { "NW", "NE", "SW", "SE", "TL", "TR", "BL", "BR", "1", "2", "3", "4" };
+        string[] positions = new string[] { "NW", "NE", "SW", "SE", "TL", "TR", "BL", "BR", "1", "2", "3", "4", "COLLECT", "SUBMIT" };
         List<string> parameters = input.Trim().ToUpperInvariant().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
         if (parameters.First() == "PRESS" || parameters.First() == "MOVE")
         {
@@ -175,11 +187,19 @@ public class IKEAPlushiesScript : MonoBehaviour {
                 yield return null;
                 foreach (string movement in parameters)
                 {
+                    if (movement == "COLLECT" || movement == "SUBMIT")
+                    {
+                        collector.OnInteract();
+                        yield return new WaitForSeconds(0.15f);
+                    }
+                    else
+                    {
                     buttons[Array.IndexOf(positions, movement) % 4].OnInteract();
                     yield return new WaitForSeconds(0.15f);
+                    }
                 }
             }
-            else yield return "sendtochaterror Invalid button position";
+            else yield return "sendtochaterror Invalid button " + parameters.First(x => !positions.Contains(x));
         }
     }
 }
