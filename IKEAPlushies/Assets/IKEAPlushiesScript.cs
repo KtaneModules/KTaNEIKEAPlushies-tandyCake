@@ -63,19 +63,20 @@ public class IKEAPlushiesScript : MonoBehaviour {
         int[] abcd = SNNumbers.Select(x => x == 0 ? 10 : x).ToArray();
         int A = abcd[0];
         int B = abcd[1];
-        int C = abcd[2 % abcd.Count()]; //Keeps the mod from running into an outofrangeexception
-        int D = abcd[3 % abcd.Count()]; //If this wraps around, we won't be using these anyway.
-
+        int C, D;
         switch (SNNumbers.Count())
         {
             case 2:
                 plushieValues = new int[] { A+B, A-B, A+2*B, A*B, A+B+7, A+B-3, A*B-10, 3*A-B, A*A+B*B, 2*A-B, 3*A+3*B, A*A-B*B };
                 break;
             case 3:
+                C = abcd[2];
                 plushieValues = new int[] { A*B+C, A+B+C, A*B*C, A+B*C, A+B-C, (A-B)*(A-B)+C, A-B+C, A+2*B-3*C, A*A+B*B+C*C, A-B-C, 2*A+2*B-C, A-B*C };
                 break;
             case 4:
-                plushieValues = new int[] { A*B+C*D, A+B+C+D, A-B+C-D, A-B+C-D, (A+B+C)*D, A*(B-C)*D, A*B-C*D, A*A+B*B+C*D, A-8+B*C*D, A*A+B*B-C*C-D*D, A*B-C+D, A+2*B+3*C+4*D, A*B+C-D };
+                C = abcd[2];
+                D = abcd[3];
+                plushieValues = new int[] { A*B+C*D, A+B+C+D, A-B+C-D, (A+B+C)*D, A*(B-C)*D, A*B-C*D, A*A+B*B+C*D, A-8+B*C*D, A*A+B*B-C*C-D*D, A*B-C+D, A+2*B+3*C+4*D, A*B+C-D };
                 break;
         }
         plushieValues = plushieValues.Select(x => KeepOutOfTrap(KeepInRange(x - 1))).ToArray();
