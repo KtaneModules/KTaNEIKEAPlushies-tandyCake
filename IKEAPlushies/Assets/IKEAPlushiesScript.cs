@@ -180,7 +180,15 @@ public class IKEAPlushiesScript : MonoBehaviour {
     {
         string[] positions = new string[] { "NW", "NE", "SW", "SE", "TL", "TR", "BL", "BR", "1", "2", "3", "4", "COLLECT", "SUBMIT" };
         List<string> parameters = input.Trim().ToUpperInvariant().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-        if (parameters.First() == "PRESS" || parameters.First() == "MOVE")
+        if (input == "RESET")
+        {
+            yield return null;
+            yield return "sendtochat Module resetted!";
+            currentPos = startingPos;
+            collectedPlushies.Clear();
+            stage = 0;
+        }
+        else if (parameters.First() == "PRESS" || parameters.First() == "MOVE")
         {
             parameters.Remove(parameters.First());
             if (parameters.All(x => positions.Contains(x)))
