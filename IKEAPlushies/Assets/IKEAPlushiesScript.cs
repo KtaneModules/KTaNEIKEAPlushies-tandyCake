@@ -101,7 +101,6 @@ public class IKEAPlushiesScript : MonoBehaviour {
         if (moduleSolved) return;
 
         int endPos = DiagonalMove(currentPos, direction);
-        Debug.Log(endPos);
         if (chosenGrid[endPos] == 'x')
         {
             Debug.LogFormat("[IKEA Plushies #{0}] Attempted to move {1} from position {2} to {3}, which is on a trap tile. Strike incurred and positions reset.", 
@@ -176,6 +175,12 @@ public class IKEAPlushiesScript : MonoBehaviour {
     private readonly string TwitchHelpMessage = @"Use [!{0} press NW TR 3 SE] to press those buttons. Use [!{0} press collect] to press the collect button. Commands can be chained with spaces; collect commands can be interspersed within movement commands.";
     #pragma warning restore 414
 
+    IEnumerator Press(KMSelectable btn, float delay)
+    {
+        btn.OnInteract();
+        yield return new WaitForSeconds(delay);
+    }
+
     IEnumerator ProcessTwitchCommand (string input)
     {
         string[] positions = new string[] { "NW", "NE", "SW", "SE", "TL", "TR", "BL", "BR", "1", "2", "3", "4", "COLLECT", "SUBMIT" };
@@ -189,18 +194,107 @@ public class IKEAPlushiesScript : MonoBehaviour {
                 foreach (string movement in parameters)
                 {
                     if (movement == "COLLECT" || movement == "SUBMIT")
-                    {
-                        collector.OnInteract();
-                        yield return new WaitForSeconds(0.15f);
-                    }
+                        yield return Press(collector, 0.15f);
                     else
-                    {
-                    buttons[Array.IndexOf(positions, movement) % 4].OnInteract();
-                    yield return new WaitForSeconds(0.15f);
-                    }
+                        yield return Press(buttons[Array.IndexOf(positions, movement) % 4], 0.15f);
                 }
             }
             else yield return "sendtochaterror Invalid button " + parameters.First(x => !positions.Contains(x));
         }
     }
+
+    IEnumerator TwitchHandleForcedSolve()
+    {
+        int[] targets = plushiePositions.Distinct().Where(x => !collectedPlushies.Contains(x)).ToArray();
+        List<int[]> orders = GetAllPermutations(targets.Length);
+        List<Path> paths = new List<Path>(orders.Count);
+        foreach (int[] order in orders)
+        {
+            Path p = new Path { targetOrder = order.Select(x => targets[x]).ToArray() };
+            Debug.Log(p.targetOrder.Join());
+            for (int i = 0; i < order.Length; i++)
+                p.directions.Add(FindPath(i == 0 ? currentPos : p.targetOrder[i - 1], p.targetOrder[i]));
+            paths.Add(p);
+        }
+        Path min = paths.OrderBy(p => p.PathLength).First();
+
+        foreach (int[] trail in min.directions)
+        {
+            foreach (int dir in trail)
+                yield return Press(buttons[dir], 0.15f);
+            yield return Press(collector, 0.15f);
+        }
+    }   
+
+    int[] FindPath(int start, int end)
+    {
+        if (start == end)
+            return new int[0];
+        Queue<int> q = new Queue<int>();
+        List<Movement> allMoves = new List<Movement>();
+        q.Enqueue(start);
+        while (q.Count > 0)
+        {
+            int cur = q.Dequeue();
+            if (cur == end)
+                break;
+            for (int dir = 0; dir < 4; dir++)
+            {
+                int target = DiagonalMove(cur, dir);
+                if (chosenGrid[target] != 'x')
+                {
+                    q.Enqueue(target);
+                    allMoves.Add(new Movement(cur, target, dir));
+                }
+            }
+        }
+        Movement lastMove = allMoves.First(x => x.end == end);
+        List<int> path = new List<int>() { lastMove.direction };
+        while (lastMove.start != start)
+        {
+            lastMove = allMoves.First(x => x.end == lastMove.start);
+            path.Add(lastMove.direction);
+        }
+        return path.AsEnumerable().Reverse().ToArray();
+    }
+
+    List<int[]> GetAllPermutations(int count)
+    {
+        int factorial = 1;
+        for (int i = 1; i < count; i++)
+            factorial *= i;
+        List<int[]> output = new List<int[]>(factorial);
+        for (int seed = 0; seed < factorial; seed++)
+        {
+            List<int> nums = Enumerable.Range(0, count).ToList();
+            int[] shuffleResult = new int[count];
+            for (int i = 0; i < count; i++)
+            {
+                shuffleResult[i] = nums[seed % (count - i)];
+                nums.RemoveAt(seed % (count - i));
+            }
+            output.Add(shuffleResult);
+        }
+        return output;
+    }
+
+    class Path
+    {
+        public int[] targetOrder;
+        public List<int[]> directions = new List<int[]>();
+        public int PathLength { get { return directions.Sum(x => x.Length); } }
+    }
+    struct Movement
+    {
+        public int start;
+        public int end;
+        public int direction;
+        public Movement(int s, int e, int d)
+        {
+            start = s;
+            end = e;
+            direction = d;
+        }
+    }
+
 }
