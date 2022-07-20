@@ -76,7 +76,7 @@ public class IKEAPlushiesScript : MonoBehaviour {
             case 4:
                 C = abcd[2];
                 D = abcd[3];
-                plushieValues = new int[] { A*B+C*D, A+B+C+D, A-B+C-D, (A+B+C)*D, A*(B-C)*D, A*B-C*D, A*A+B*B+C*D, A-8+B*C*D, A*A+B*B-C*C-D*D, A*B-C+D, A+2*B+3*C+4*D, A*B+C-D };
+                plushieValues = new int[] { A*B+C*D, A+B+C+D, A-B+C-D, (A+B+C)*D, A*(B-C)*D, A*B-C*D, A*A-B*B+C*D, A-8+B*C*D, A*A+B*B-C*C-D*D, A*B-C+D, A+2*B+3*C+4*D, A*B+C-D };
                 break;
         }
         plushieValues = plushieValues.Select(x => KeepOutOfTrap(KeepInRange(x - 1))).ToArray();
