@@ -13,15 +13,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: ikeaPlushies
   title: IKEA Plushies
-  author: Danny7007
+  author: tandyCake
   description: 'My beloved...
 
 
-    Module by Danny7007
+    Module by tandyCake
 
     moduleID: ikeaPlushies
 
     manual can be found at ktane.timwi.de'
-  version: 2.3.2
+  version: 2.3.3
   outputFolder: build
   previewImage: {fileID: 2800000, guid: 7220cf0852178ef4aa3151e4d78c68d1, type: 3}

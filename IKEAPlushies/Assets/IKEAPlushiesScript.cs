@@ -172,7 +172,7 @@ public class IKEAPlushiesScript : MonoBehaviour {
     }
 
     #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"Use [!{0} press NW TR 3 SE] to press those buttons. Use [!{0} press collect] to press the collect button. Commands can be chained with spaces; collect commands can be interspersed within movement commands.";
+    private readonly string TwitchHelpMessage = @"Use [!{0} press TL NE 2 3] to press the buttons in those positions. Use [!{0} press collect] to press the collect button. Commands can be chained with spaces; collect commands can be interspersed within movement commands.";
     #pragma warning restore 414
 
     IEnumerator Press(KMSelectable btn, float delay)
